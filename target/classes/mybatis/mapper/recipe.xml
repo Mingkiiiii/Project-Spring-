@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.future.my.recipe.dao.RecipeDAO">
+	<select id="getRecipeList" resultType="RecipeVO">
+		SELECT a.recipe_no
+		,a.recipe_name
+		, a.recipe_youtube
+		, a.recipe_image
+		, a.user_id
+		, a.recipe_text
+		, b.user_name
+		, a.write_date
+		, a.recipe_scrap
+        , (SELECT count(*)
+            FROM recipe_scrap
+            WHERE recipe_no = a.recipe_no) as scrap_count
+		FROM
+		recipe a, member b
+		WHERE a.user_id = b.user_id
+		AND
+		a.del_yn = 'N'	
+	</select>
+	<insert id="insertRecipe" parameterType="RecipeVO">
+		INSERT INTO recipe (recipe_no,recipe_name, recipe_youtube, recipe_image,
+		recipe_text, user_id)
+		VALUES ((SELECT NVL(MAX(recipe_no),0) + 1
+		FROM recipe),#{recipeName}, #{recipeYoutube}, #{recipeImage},
+		#{recipeText}, #{userId})
+	</insert>
+
+	<select id="getRecipe" resultType="RecipeVO" parameterType="int">
+		SELECT * FROM (
+    SELECT a.recipe_no
+        , a.recipe_name
+        , a.recipe_youtube
+        , a.recipe_image
+        , a.user_id
+        , a.recipe_text
+        , b.user_name
+        , a.write_date
+        , a.recipe_scrap
+        , rs.scrap_yn
+        , ROWNUM AS rn
+    FROM
+        recipe a
+    JOIN
+        member b ON a.user_id = b.user_id
+    LEFT JOIN
+        recipe_scrap rs ON a.recipe_no = rs.recipe_no
+    WHERE
+        a.recipe_no = #{recipeNo}
+        AND a.del_yn = 'N'
+)
+WHERE rn = 1
+
+	</select>
+	<update id="updateRecipe" parameterType="RecipeVO">
+		UPDATE recipe
+		SET
+		recipe_name = #{recipeName}
+		,recipe_youtube= #{recipeYoutube}
+		,recipe_image = #{recipeImage}
+		,recipe_text = #{recipeText}
+		,write_date = SYSDATE
+		WHERE recipe_no = #{recipeNo}
+	</update>
+
+	<update id="deleteRecipe" parameterType="int">
+		UPDATE recipe
+		SET del_yn
+		='Y'
+		WHERE recipe_no = #{recipeNo}
+	</update>
+
+	<insert id="writeComment" parameterType="CommentVO">
+		INSERT INTO comments
+		(comment_no, recipe_no, user_id, comment_text)
+		VALUES(#{commentNo},
+		#{recipeNo}, #{userId}, #{commentText})
+
+	</insert>
+
+	<select id="getComment" parameterType="String"
+		resultType="CommentVO">
+
+		SELECT a.comment_no
+		, a.user_id
+		, b.user_name
+		, a.comment_text
+		, b.user_image
+		, TO_CHAR(a.comment_date, 'YYYY/MM/dd') as comment_date
+		FROM comments a,
+		member b
+		WHERE a.user_id = b.user_id
+		AND a.comment_no = #{commentNo}
+		AND
+		a.del_yn = 'N'
+
+	</select>
+
+	<select id="getCommentList" parameterType="int"
+		resultType="CommentVO">
+		SELECT a.comment_no
+		, a.user_id
+		, b.user_name
+		, b.user_image
+		, a.comment_text
+		, TO_CHAR(a.comment_date, 'YYYY/MM/dd') as comment_date
+		FROM comments a,
+		member b
+		WHERE a.user_id = b.user_id
+		AND a.recipe_no = #{recipeNo}
+		AND
+		a.del_yn = 'N'
+		ORDER BY comment_date DESC
+	</select>
+
+	<update id="deleteComment" parameterType="CommentVO">
+		UPDATE comments
+		SET
+		del_yn ='Y'
+		WHERE comment_no = #{commentNo}
+	</update>
+
+	<select id="getScrapList" resultType="ScrapVO" parameterType="String">
+		SELECT r.recipe_no,
+		       r.recipe_name,
+		       r.recipe_youtube,
+		       r.recipe_text,
+		       r.recipe_image,
+		       r.user_id AS author_id,
+		       r.write_date,
+		       rs.scrap_date,
+		       m.user_name,
+		       rs.scrap_yn,
+		       (SELECT COUNT(*)
+        FROM recipe_scrap
+        WHERE scrap_yn = 'Y' AND recipe_no = r.recipe_no) AS scrap_count
+		FROM recipe r
+		INNER JOIN recipe_scrap rs ON r.recipe_no = rs.recipe_no
+		INNER JOIN member m ON rs.user_id = m.user_id
+		WHERE rs.user_id = #{userId}
+		  AND m.user_id = #{userId}
+		  AND rs.scrap_yn = 'Y'
+	</select>
+
+	<insert id="insertScrap" parameterType="ScrapVO">
+		INSERT INTO recipe_scrap (scrap_id, user_id, recipe_no, scrap_date)
+		VALUES (scrap_id_seq.NEXTVAL, #{userId}, #{recipeNo}, SYSDATE)
+	</insert>
+	
+	<update id="delScrap" parameterType="ScrapVO">
+		UPDATE recipe_scrap
+		SET scrap_yn ='N'
+		WHERE recipe_no = #{recipeNo}
+        AND user_id = #{userId}
+	</update>
+	
+
+</mapper>
+

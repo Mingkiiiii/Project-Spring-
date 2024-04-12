@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.future.my.cooktip.dao.CooktipDAO">
+
+	<select id="getcooktipList" resultType="com.future.my.cooktip.vo.CooktipVO">
+		SELECT  a.cooktip_no
+		       , a.cooktip_title
+		       , a.user_id
+		       , b.user_name
+		       , a.cooktip_date
+		FROM
+		cooktip a, member b
+		WHERE a.user_id = b.user_id
+		AND	  a.del_yn = 'N'
+	</select>
+	<insert id="writeCooktip" parameterType="CooktipVO">
+ 		INSERT INTO recipe (recipe_name, recipe_youtube, recipe_image, recipe_text, user_id)
+		VALUES (#{recipeName}, #{recipeYoutube}, #{recipeImage},{recipeText}, #{userId})
+						 	
+ 	
+ 	</insert>
+
+</mapper>
+

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.future.my.cooktip.dao.CooktipDAO">
+
+	<select id="getcooktipList" resultType="com.future.my.cooktip.vo.CooktipVO">
+		SELECT  a.cooktip_no
+		       , a.cooktip_title
+		       , a.user_id
+		       , b.user_name
+		       , TO_CHAR(a.cooktip_date, 'YYYY/MM/dd') as cooktip_date
+		FROM
+		cooktip a, member b
+		WHERE a.user_id = b.user_id
+		AND	  a.del_yn = 'N'
+		ORDER BY 1	
+	</select>
+	<insert id="writeCooktip" parameterType="CooktipVO">
+ 		INSERT INTO cooktip (cooktip_no, cooktip_title, cooktip_content, user_id)
+		VALUES ((SELECT NVL(MAX(cooktip_no),0) + 1
+         FROM cooktip),#{cooktipTitle}, #{cooktipContent}, #{userId})
+ 	
+ 	</insert>
+ 	
+ 	<select id="getCooktip" resultType="CooktipVO" parameterType="int">
+		SELECT a.cooktip_no
+		     , a.cooktip_title
+		     , a.cooktip_content
+		     , a.user_id
+		     , b.user_name
+		     , TO_CHAR(a.cooktip_date, 'YYYY/MM/dd') as cooktip_date
+		FROM cooktip a, member b
+		WHERE a.user_id = b.user_id
+		AND a.cooktip_no = #{cooktipNo}
+		AND	  a.del_yn = 'N'
+	</select>
+	
+	<update id="updateCooktip" parameterType="cooktipVO">
+		UPDATE cooktip
+		SET cooktip_title = #{cooktipTitle}
+			,cooktip_content = #{cooktipContent}
+			,cooktip_date = SYSDATE
+		WHERE cooktip_no = #{cooktipNo}
+	</update>
+	<update id="deleteCooktip" parameterType="int">
+		UPDATE cooktip
+		SET del_yn ='Y'
+		WHERE cooktip_no = #{cooktipNo}
+	</update>
+</mapper>
+

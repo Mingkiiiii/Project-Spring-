@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.future.my.recipe.dao.RecipeDAO">
+	<select id="getRecipeList" resultType="RecipeVO">
+		SELECT  a.recipe_name
+		       , a.recipe_youtube
+               , a.recipe_image
+               , a.user_id
+		       , a.recipe_text
+		          , b.user_name
+		       , a.write_date
+		FROM
+		recipe a, member b
+		WHERE a.user_id = b.user_id
+		AND	  a.del_yn = 'N'
+	</select>
+	<insert id="insertRecipe" parameterType="RecipeVO">
+ 		INSERT INTO free_board(bo_no, bo_title, bo_category, bo_writer,
+ 								bo_pass, bo_content, bo_reg_date, bo_hit)
+ 		VALUES (seq_free_board.NEXTVAL, #{boTitle}, #{boCategory}, #{boWriter}
+ 				,#{boPass}, #{boContent}, SYSDATE, 0)
+ 	</insert>
+
+</mapper>
+
